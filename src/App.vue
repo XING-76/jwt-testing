@@ -6,8 +6,8 @@ import UrlModal from './components/UrlModal.vue';
 // 響應式數據
 const formData = reactive({
   targetUrl: 'https://example.com',
-  secretKey: 'your-secret-key-here',
-  userId: 'test-uid',
+  secretKey: 'secret-key-for-jwt-testing',
+  userId: 'N100007965',
 });
 
 const errors = reactive({});
@@ -70,12 +70,19 @@ const generateJWTAndRedirect = async () => {
 
   try {
     // 生成 JWT
-    const token = await generateJWT(formData.userId, formData.secretKey);
+    const result = await generateJWT(formData.userId, formData.secretKey);
 
     // 構建跳轉 URL
-    const redirectUrl = buildRedirectUrl(formData.targetUrl, token);
+    const redirectUrl = buildRedirectUrl(formData.targetUrl, result.token);
     generatedUrl.value = redirectUrl;
     showModal.value = true;
+
+    // 顯示密鑰格式提示
+    if (result.isBase64) {
+      console.log('密鑰是 base64url 格式，在 jwt.io 上使用原始密鑰');
+    } else {
+      console.log('密鑰是普通字符串格式，在 jwt.io 上使用原始密鑰');
+    }
 
     // 延遲一下讓使用者看到生成的 URL，然後跳轉
     setTimeout(() => {

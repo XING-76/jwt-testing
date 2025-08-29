@@ -77,7 +77,9 @@ npm run test:ui
 2. **Set JWT Secret Key**
 
    - Enter the secret key for signing JWT
+   - Supports plain text keys (recommended for simplicity)
    - Supports show/hide toggle for the key
+   - Compatible with jwt.io verification
 
 3. **Enter User ID**
 
@@ -155,7 +157,7 @@ URL display modal component including:
 
 JWT-related utility functions including:
 
-- JWT token generation
+- JWT token generation with simple string key support
 - JWT token verification and decryption
 - Redirect URL building
 - JWT token extraction from URLs

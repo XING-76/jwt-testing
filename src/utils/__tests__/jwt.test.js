@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { verifyJWT, buildRedirectUrl, extractJWTFromUrl } from '../jwt.js';
+import { generateJWT, verifyJWT, buildRedirectUrl, extractJWTFromUrl } from '../jwt.js';
 
 describe('JWT 工具函數測試', () => {
-  const testUserId = 'test-user-123';
+  const testUserId = 'N100007965';
   const testSecretKey = 'test-secret-key-2024';
   const testTargetUrl = 'https://example.com';
 
-  // 使用真實的 JWT Token（base64 解碼後包含 uid: test-user-123）
+  // 使用真實的 JWT Token（base64 解碼後包含 sub: N100007965）
   const testJWTToken =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJ0ZXN0LXVzZXItMTIzIiwiaWF0IjoxNzU2NDQ1MTY5LCJleHAiOjE3NTY0NDg3Njl9.test-signature';
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJOMTAwMDA3OTY1IiwiaWF0IjoxNzU2NDQ1MTY5LCJuYmYiOjE3NTY0NDUxNjQsImV4cCI6MTc1NjQ0NTM0OX0.test-signature';
 
   describe('buildRedirectUrl', () => {
     it('應該正確構建跳轉 URL', () => {
@@ -99,7 +99,7 @@ describe('JWT 工具函數測試', () => {
       });
     });
 
-    it('應該能夠解析 JWT payload 中的 uid', () => {
+    it('應該能夠解析 JWT payload 中的 sub', () => {
       // 解析 JWT payload（第二個部分）
       const jwtParts = testJWTToken.split('.');
       const payloadBase64 = jwtParts[1];
@@ -111,8 +111,8 @@ describe('JWT 工具函數測試', () => {
         const payloadJson = atob(paddedPayload);
         const payload = JSON.parse(payloadJson);
 
-        expect(payload).toHaveProperty('uid');
-        expect(payload.uid).toBe(testUserId);
+        expect(payload).toHaveProperty('sub');
+        expect(payload.sub).toBe(testUserId);
       } catch (error) {
         // 如果解析失敗，至少驗證格式
         expect(payloadBase64).toMatch(/^[A-Za-z0-9-_]+$/);
