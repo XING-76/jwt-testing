@@ -77,18 +77,20 @@ npm run test:ui
 2. **Set JWT Secret Key**
 
    - Enter the secret key for signing JWT
-   - Supports plain text keys (recommended for simplicity)
+   - Supports plain text keys and base64url format
+   - Automatic key format detection and processing
    - Supports show/hide toggle for the key
    - Compatible with jwt.io verification
 
 3. **Enter User ID**
 
-   - Set the uid field in JWT payload
+   - Set the sub field in JWT payload
 
 4. **Generate and Redirect**
    - Click "Generate JWT and Redirect" button
    - System generates JWT token and builds redirect URL
    - Modal pops up showing the generated URL
+   - Console shows key format information (base64url or plain text)
    - Automatically redirects to target website after 2 seconds
 
 ### JWT Token Structure
@@ -97,9 +99,10 @@ Generated JWT token contains:
 
 ```json
 {
-  "uid": "User input ID",
+  "sub": "User input ID",
   "iat": "Issued at time",
-  "exp": "Expiration time (1 hour later)"
+  "nbf": "Not before time (5 seconds before issued time)",
+  "exp": "Expiration time (180 seconds after issued time)"
 }
 ```
 
@@ -157,10 +160,12 @@ URL display modal component including:
 
 JWT-related utility functions including:
 
-- JWT token generation with simple string key support
+- JWT token generation with automatic key format detection
+- Support for both plain text and base64url format keys
 - JWT token verification and decryption
-- Redirect URL building
-- JWT token extraction from URLs
+- Redirect URL building and JWT token extraction
+- Time control with nbf (not before) and exp (expiration) fields
+- Comprehensive error handling and validation
 
 ## 🎨 Design
 
@@ -175,17 +180,20 @@ Project includes comprehensive test suite:
 
 ### JWT Utility Function Tests
 
-- JWT token format validation
-- JWT payload parsing and uid verification
+- JWT token format validation and structure verification
+- JWT payload parsing and sub field verification
+- Base64 encoding/decoding and padding handling
 - URL building and JWT extraction functionality
 - Error handling and edge case testing
+- Key format detection and processing validation
 
 ### Component Tests
 
-- Modal component show/hide logic
-- User interaction event handling
-- URL copy functionality testing
-- Error handling tests
+- Modal component show/hide logic and visibility control
+- User interaction event handling (click, copy, close)
+- URL copy functionality with clipboard API integration
+- Error handling and fallback behavior testing
+- Component props validation and event emission
 
 ### Test Commands
 
@@ -199,7 +207,8 @@ npm run test:ui     # Test UI interface
 
 - This tool is for testing and development purposes only
 - Do not use test keys in production environments
-- JWT tokens expire after 1 hour
+- JWT tokens expire after 180 seconds (3 minutes)
+- Tokens include nbf (not before) time for additional security
 - Recommended to use in secure testing environments
 
 ## 📋 Deployment Requirements
