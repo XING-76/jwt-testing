@@ -3,7 +3,7 @@ import { generateJWT, verifyJWT, buildRedirectUrl, extractJWTFromUrl } from '../
 
 describe('JWT 工具函數測試', () => {
   const testUserId = 'N100007965';
-  const testSecretKey = 'A0PUZmC1hs82Bdbz5tlxuM7Yw46E9NV3'; // 預設密鑰
+  const testSecretKey = 'test-secret-key-2024'; // 測試用密鑰
   const testTargetUrl = 'https://example.com';
 
   describe('generateJWT', () => {
