@@ -77,8 +77,7 @@ npm run test:ui
 2. **Set JWT Secret Key**
 
    - Enter the secret key for signing JWT
-   - Supports plain text keys and base64url format
-   - Automatic key format detection and processing
+   - Supports plain text keys (UTF-8 encoded)
    - Supports show/hide toggle for the key
    - Compatible with jwt.io verification
 
@@ -160,8 +159,7 @@ URL display modal component including:
 
 JWT-related utility functions including:
 
-- JWT token generation with automatic key format detection
-- Support for both plain text and base64url format keys
+- JWT token generation with UTF-8 encoded secret keys
 - JWT token verification and decryption
 - Redirect URL building and JWT token extraction
 - Time control with nbf (not before) and exp (expiration) fields
@@ -182,10 +180,10 @@ Project includes comprehensive test suite:
 
 - JWT token format validation and structure verification
 - JWT payload parsing and sub field verification
-- Base64 encoding/decoding and padding handling
+- JWT generation and verification flow testing
 - URL building and JWT extraction functionality
 - Error handling and edge case testing
-- Key format detection and processing validation
+- UTF-8 key encoding validation
 
 ### Component Tests
 

@@ -25,36 +25,9 @@ export const generateJWT = async (userId, secretKey, expirationSeconds = 180) =>
       exp: exp, // 過期時間
     };
 
-    // 處理用戶輸入的密鑰，確保與 jwt.io 兼容
-    let secret;
-    let isBase64 = false;
-
-    // 檢查是否為有效的 base64url 格式
-    const base64Regex = /^[A-Za-z0-9_-]+$/;
-    const isValidBase64 =
-      base64Regex.test(secretKey) && secretKey.length % 4 === 0 && secretKey.length >= 4;
-
-    if (isValidBase64) {
-      try {
-        // 嘗試將密鑰作為 base64url 解碼
-        const decoded = jose.base64url.decode(secretKey);
-        // 檢查解碼後的內容是否合理
-        if (decoded.length > 0) {
-          secret = decoded;
-          isBase64 = true;
-        } else {
-          throw new Error('Empty decoded content');
-        }
-      } catch (error) {
-        // 解碼失敗，使用 UTF-8 編碼
-        const encoder = new TextEncoder();
-        secret = encoder.encode(secretKey);
-      }
-    } else {
-      // 不是 base64url 格式，使用 UTF-8 編碼
-      const encoder = new TextEncoder();
-      secret = encoder.encode(secretKey);
-    }
+    // 直接使用 UTF-8 編碼處理密鑰
+    const encoder = new TextEncoder();
+    const secret = encoder.encode(secretKey);
 
     const token = await new jose.SignJWT(payload)
       .setProtectedHeader({
@@ -66,7 +39,7 @@ export const generateJWT = async (userId, secretKey, expirationSeconds = 180) =>
       .setExpirationTime(exp)
       .sign(secret);
 
-    return { token, isBase64 };
+    return { token, isBase64: false };
   } catch (error) {
     throw new Error(`生成 JWT 時發生錯誤: ${error.message}`);
   }
@@ -84,34 +57,9 @@ export const verifyJWT = async (token, secretKey) => {
       throw new Error('Token 和密鑰不能為空');
     }
 
-    // 使用與生成時相同的密鑰處理邏輯
-    let secret;
-
-    // 檢查是否為有效的 base64url 格式
-    const base64Regex = /^[A-Za-z0-9_-]+$/;
-    const isValidBase64 =
-      base64Regex.test(secretKey) && secretKey.length % 4 === 0 && secretKey.length >= 4;
-
-    if (isValidBase64) {
-      try {
-        // 嘗試將密鑰作為 base64url 解碼
-        const decoded = jose.base64url.decode(secretKey);
-        // 檢查解碼後的內容是否合理
-        if (decoded.length > 0) {
-          secret = decoded;
-        } else {
-          throw new Error('Empty decoded content');
-        }
-      } catch (error) {
-        // 解碼失敗，使用 UTF-8 編碼
-        const encoder = new TextEncoder();
-        secret = encoder.encode(secretKey);
-      }
-    } else {
-      // 不是 base64url 格式，使用 UTF-8 編碼
-      const encoder = new TextEncoder();
-      secret = encoder.encode(secretKey);
-    }
+    // 直接使用 UTF-8 編碼處理密鑰
+    const encoder = new TextEncoder();
+    const secret = encoder.encode(secretKey);
 
     const { payload } = await jose.jwtVerify(token, secret);
     return payload;
