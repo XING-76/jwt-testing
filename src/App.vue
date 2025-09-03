@@ -6,7 +6,6 @@ import UrlModal from './components/UrlModal.vue';
 // 響應式數據
 const formData = reactive({
   targetUrl: 'https://example.com',
-  secretKey: 'secret-key-for-jwt-testing',
   userId: 'N100007965',
 });
 
@@ -14,14 +13,12 @@ const errors = reactive({});
 const isLoading = ref(false);
 const generatedUrl = ref('');
 const errorMessage = ref('');
-const showPassword = ref(false);
 const showModal = ref(false);
 
-// 方法
-const togglePassword = () => {
-  showPassword.value = !showPassword.value;
-};
+console.log(import.meta.env.VITE_PRIVATE_KEY);
+console.log(import.meta.env.VITE_PUBLIC_KEY);
 
+// 方法
 const isValidUrl = (string) => {
   try {
     new URL(string);
@@ -41,12 +38,6 @@ const validateForm = () => {
     isValid = false;
   } else if (!isValidUrl(formData.targetUrl)) {
     errors.targetUrl = '請輸入有效的 URL 格式';
-    isValid = false;
-  }
-
-  // 驗證密鑰
-  if (!formData.secretKey) {
-    errors.secretKey = '請輸入 JWT 密鑰';
     isValid = false;
   }
 
@@ -70,19 +61,12 @@ const generateJWTAndRedirect = async () => {
 
   try {
     // 生成 JWT
-    const result = await generateJWT(formData.userId, formData.secretKey);
+    const jwtToken = await generateJWT(formData.userId);
 
     // 構建跳轉 URL
-    const redirectUrl = buildRedirectUrl(formData.targetUrl, result.token);
+    const redirectUrl = buildRedirectUrl(formData.targetUrl, jwtToken);
     generatedUrl.value = redirectUrl;
     showModal.value = true;
-
-    // 顯示密鑰格式提示
-    if (result.isBase64) {
-      console.log('密鑰是 base64url 格式，在 jwt.io 上使用原始密鑰');
-    } else {
-      console.log('密鑰是普通字符串格式，在 jwt.io 上使用原始密鑰');
-    }
 
     // 延遲一下讓使用者看到生成的 URL，然後跳轉
     setTimeout(() => {
@@ -122,60 +106,6 @@ const generateJWTAndRedirect = async () => {
             />
             <p v-if="errors.targetUrl" class="mt-1 text-sm text-red-600">
               {{ errors.targetUrl }}
-            </p>
-          </div>
-
-          <!-- 密鑰 -->
-          <div>
-            <label for="secretKey" class="block text-sm font-medium text-gray-700 mb-2">
-              JWT 密鑰
-            </label>
-            <div class="relative">
-              <input
-                id="secretKey"
-                v-model="formData.secretKey"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="your-secret-key"
-                class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                :class="{ 'border-red-500': errors.secretKey }"
-              />
-              <button
-                type="button"
-                @click="togglePassword"
-                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-              >
-                <svg
-                  v-if="showPassword"
-                  class="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
-                  />
-                </svg>
-                <svg v-else class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
-              </button>
-            </div>
-            <p v-if="errors.secretKey" class="mt-1 text-sm text-red-600">
-              {{ errors.secretKey }}
             </p>
           </div>
 

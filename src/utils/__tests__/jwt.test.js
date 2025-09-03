@@ -1,38 +1,37 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateJWT, verifyJWT, buildRedirectUrl, extractJWTFromUrl } from '../jwt.js';
 
-describe('JWT 工具函數測試', () => {
+describe('JWT 工具函數測試 (RS256)', () => {
   const testUserId = 'N100007965';
-  const testSecretKey = 'test-secret-key-2024'; // 測試用密鑰
   const testTargetUrl = 'https://example.com';
+
+  beforeEach(() => {
+    // 确保环境变量已设置
+    if (!import.meta.env.VITE_PRIVATE_KEY || !import.meta.env.VITE_PUBLIC_KEY) {
+      throw new Error('测试需要设置 VITE_PRIVATE_KEY 和 VITE_PUBLIC_KEY 环境变量');
+    }
+  });
 
   describe('generateJWT', () => {
     it('應該能夠生成有效的 JWT Token', async () => {
-      const result = await generateJWT(testUserId, testSecretKey);
+      const result = await generateJWT(testUserId);
 
-      expect(result).toHaveProperty('token');
-      expect(result).toHaveProperty('isBase64');
-      expect(result.isBase64).toBe(false);
-      expect(typeof result.token).toBe('string');
+      expect(typeof result).toBe('string');
 
       // 驗證 JWT 格式：header.payload.signature
-      const jwtParts = result.token.split('.');
+      const jwtParts = result.split('.');
       expect(jwtParts).toHaveLength(3);
     });
 
     it('應該在空 userId 時拋出錯誤', async () => {
-      await expect(generateJWT('', testSecretKey)).rejects.toThrow('使用者 ID 和密鑰不能為空');
-    });
-
-    it('應該在空 secretKey 時拋出錯誤', async () => {
-      await expect(generateJWT(testUserId, '')).rejects.toThrow('使用者 ID 和密鑰不能為空');
+      await expect(generateJWT('')).rejects.toThrow('使用者 ID 不能為空');
     });
 
     it('應該生成包含正確 payload 的 JWT', async () => {
-      const result = await generateJWT(testUserId, testSecretKey);
+      const result = await generateJWT(testUserId);
 
       // 解析 JWT payload
-      const jwtParts = result.token.split('.');
+      const jwtParts = result.split('.');
       const payloadBase64 = jwtParts[1];
 
       // 補齊 base64 padding
@@ -51,12 +50,28 @@ describe('JWT 工具函數測試', () => {
       expect(payload.nbf).toBe(payload.iat - 5);
       expect(payload.exp).toBe(payload.iat + 180);
     });
+
+    it('應該使用 RS256 算法', async () => {
+      const result = await generateJWT(testUserId);
+
+      // 解析 JWT header
+      const jwtParts = result.split('.');
+      const headerBase64 = jwtParts[0];
+
+      // 補齊 base64 padding
+      const paddedHeader = headerBase64 + '='.repeat((4 - (headerBase64.length % 4)) % 4);
+      const headerJson = atob(paddedHeader);
+      const header = JSON.parse(headerJson);
+
+      expect(header.alg).toBe('RS256');
+      expect(header.typ).toBe('JWT');
+    });
   });
 
   describe('verifyJWT', () => {
     it('應該能夠驗證並解密正確的 JWT Token', async () => {
-      const result = await generateJWT(testUserId, testSecretKey);
-      const payload = await verifyJWT(result.token, testSecretKey);
+      const result = await generateJWT(testUserId);
+      const payload = await verifyJWT(result);
 
       expect(payload).toHaveProperty('sub', testUserId);
       expect(payload).toHaveProperty('iat');
@@ -64,25 +79,13 @@ describe('JWT 工具函數測試', () => {
       expect(payload).toHaveProperty('exp');
     });
 
-    it('應該在錯誤密鑰時拋出錯誤', async () => {
-      const result = await generateJWT(testUserId, testSecretKey);
-      const wrongSecretKey = 'wrong-secret-key';
-
-      await expect(verifyJWT(result.token, wrongSecretKey)).rejects.toThrow('驗證 JWT 時發生錯誤');
-    });
-
     it('應該在無效 Token 時拋出錯誤', async () => {
       const invalidToken = 'invalid.jwt.token';
-      await expect(verifyJWT(invalidToken, testSecretKey)).rejects.toThrow('驗證 JWT 時發生錯誤');
-    });
-
-    it('應該在空密鑰時拋出錯誤', async () => {
-      const result = await generateJWT(testUserId, testSecretKey);
-      await expect(verifyJWT(result.token, '')).rejects.toThrow('驗證 JWT 時發生錯誤');
+      await expect(verifyJWT(invalidToken)).rejects.toThrow('驗證 JWT 時發生錯誤');
     });
 
     it('應該在空 Token 時拋出錯誤', async () => {
-      await expect(verifyJWT('', testSecretKey)).rejects.toThrow('驗證 JWT 時發生錯誤');
+      await expect(verifyJWT('')).rejects.toThrow('Token 不能為空');
     });
   });
 
@@ -130,30 +133,29 @@ describe('JWT 工具函數測試', () => {
   describe('完整流程測試', () => {
     it('應該能夠完成完整的 JWT 生成、URL 構建、Token 提取和驗證流程', async () => {
       // 1. 生成 JWT Token
-      const jwtResult = await generateJWT(testUserId, testSecretKey);
-      expect(jwtResult.token).toBeDefined();
-      expect(jwtResult.isBase64).toBe(false);
+      const jwtResult = await generateJWT(testUserId);
+      expect(jwtResult).toBeDefined();
 
       // 2. 構建跳轉 URL
-      const redirectUrl = buildRedirectUrl(testTargetUrl, jwtResult.token);
-      expect(redirectUrl).toContain(jwtResult.token);
+      const redirectUrl = buildRedirectUrl(testTargetUrl, jwtResult);
+      expect(redirectUrl).toContain(jwtResult);
 
       // 3. 從 URL 中提取 JWT
       const extractedToken = extractJWTFromUrl(redirectUrl);
-      expect(extractedToken).toBe(jwtResult.token);
+      expect(extractedToken).toBe(jwtResult);
 
       // 4. 驗證提取的 Token
-      const payload = await verifyJWT(extractedToken, testSecretKey);
+      const payload = await verifyJWT(extractedToken);
       expect(payload.sub).toBe(testUserId);
     });
   });
 
   describe('JWT 格式驗證測試', () => {
     it('應該驗證生成的 JWT Token 的基本格式', async () => {
-      const result = await generateJWT(testUserId, testSecretKey);
+      const result = await generateJWT(testUserId);
 
       // JWT 格式：header.payload.signature
-      const jwtParts = result.token.split('.');
+      const jwtParts = result.split('.');
       expect(jwtParts).toHaveLength(3);
 
       // 驗證每個部分都是 base64url 編碼
