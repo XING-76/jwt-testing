@@ -1,4 +1,4 @@
-import { SignJWT, jwtVerify, importPKCS8, importSPKI } from 'jose';
+import * as jose from 'jose';
 import { PRIVATE_KEY, PUBLIC_KEY } from './keys.js';
 
 /**
