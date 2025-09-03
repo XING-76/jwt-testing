@@ -1,11 +1,12 @@
 # JWT Cross-Site Testing Tool
 
-A Vue 3-based JWT cross-site testing tool for generating JWT tokens and building cross-site redirect URLs, facilitating JWT-related security testing and validation.
+A Vue 3-based JWT cross-site testing tool for generating JWT tokens using RS256 algorithm and building cross-site redirect URLs, facilitating JWT-related security testing and validation.
 
 ## 🚀 Features
 
-- **JWT Token Generation**: Generate JWT tokens using HS256 algorithm
+- **JWT Token Generation**: Generate JWT tokens using RS256 algorithm (RSA asymmetric encryption)
 - **Cross-Site Redirect**: Automatically build redirect URLs containing JWT
+- **RSA Key Management**: Support for RSA private/public key pairs
 - **Form Validation**: Complete input validation and error handling
 - **Modal Popup**: Beautiful URL display modal with copy functionality
 - **Responsive Design**: Support for desktop and mobile devices
@@ -15,11 +16,12 @@ A Vue 3-based JWT cross-site testing tool for generating JWT tokens and building
 
 - **Frontend Framework**: Vue 3 (Composition API)
 - **Build Tool**: Vite
-- **JWT Library**: jose
+- **JWT Library**: jose (for RSA operations and JWT handling)
 - **Styling Framework**: Tailwind CSS
 - **Development Language**: JavaScript
 - **Testing Framework**: Vitest + Vue Test Utils
 - **Runtime Environment**: Node.js 20+
+- **Cryptography**: RSA-256 (RS256) asymmetric encryption
 
 ## 📦 Installation & Setup
 
@@ -27,6 +29,28 @@ A Vue 3-based JWT cross-site testing tool for generating JWT tokens and building
 
 - Node.js 20+
 - npm or yarn
+- RSA private/public key pair for JWT signing
+
+### Environment Variables Setup
+
+Create a `.env` file in the project root with your RSA keys:
+
+```bash
+# RSA Private Key (PKCS8 format)
+VITE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...
+-----END PRIVATE KEY-----"
+
+# RSA Public Key (SPKI format)
+VITE_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...
+-----END PUBLIC KEY-----"
+```
+
+**Note**: Make sure your RSA keys are in the correct format:
+
+- Private key should be in PKCS8 format
+- Public key should be in SPKI format
 
 ### Install Dependencies
 
@@ -74,12 +98,11 @@ npm run test:ui
    - Input the target website address to redirect to
    - Supports http/https protocols
 
-2. **Set JWT Secret Key**
+2. **Configure RSA Keys**
 
-   - Enter the secret key for signing JWT
-   - Supports plain text keys (UTF-8 encoded)
-   - Supports show/hide toggle for the key
-   - Compatible with jwt.io verification
+   - Set up RSA private key in `VITE_PRIVATE_KEY` environment variable
+   - Set up RSA public key in `VITE_PUBLIC_KEY` environment variable
+   - Keys should be in PKCS8 (private) and SPKI (public) formats
 
 3. **Enter User ID**
 
@@ -87,9 +110,8 @@ npm run test:ui
 
 4. **Generate and Redirect**
    - Click "Generate JWT and Redirect" button
-   - System generates JWT token and builds redirect URL
+   - System generates JWT token using RS256 algorithm and RSA private key
    - Modal pops up showing the generated URL
-   - Console shows key format information (base64url or plain text)
    - Automatically redirects to target website after 2 seconds
 
 ### JWT Token Structure
@@ -104,6 +126,8 @@ Generated JWT token contains:
   "exp": "Expiration time (180 seconds after issued time)"
 }
 ```
+
+**Algorithm**: RS256 (RSA Signature with SHA-256)
 
 ### Redirect URL Format
 
@@ -121,7 +145,8 @@ jwt-testing/
 │   │   └── __tests__/
 │   │       └── UrlModal.test.js            # Modal component tests
 │   ├── utils/
-│   │   ├── jwt.js                          # JWT utility functions
+│   │   ├── jwt.js                          # JWT utility functions (RS256)
+│   │   ├── keys.js                         # RSA key management
 │   │   └── __tests__/
 │   │       └── jwt.test.js                 # JWT utility function tests
 │   ├── App.vue                             # Main application component
@@ -132,6 +157,7 @@ jwt-testing/
 ├── package.json                            # Project configuration
 ├── vite.config.js                          # Vite configuration
 ├── tailwind.config.js                      # Tailwind CSS configuration
+├── .env                                    # Environment variables (RSA keys)
 └── README.md                               # Project documentation
 ```
 
@@ -142,7 +168,7 @@ jwt-testing/
 Main application component including:
 
 - Form input and validation
-- JWT generation logic
+- JWT generation logic using RS256 algorithm
 - Error handling
 - Auto-redirect functionality
 
@@ -159,11 +185,19 @@ URL display modal component including:
 
 JWT-related utility functions including:
 
-- JWT token generation with UTF-8 encoded secret keys
-- JWT token verification and decryption
+- JWT token generation with RS256 algorithm using RSA private keys
+- JWT token verification and decryption using RSA public keys
 - Redirect URL building and JWT token extraction
 - Time control with nbf (not before) and exp (expiration) fields
 - Comprehensive error handling and validation
+
+### RSA Key Management (utils/keys.js)
+
+RSA key management utilities including:
+
+- Private and public key import from environment variables
+- Key format validation (PKCS8 for private, SPKI for public)
+- Secure key handling for JWT operations
 
 ## 🎨 Design
 
@@ -180,10 +214,10 @@ Project includes comprehensive test suite:
 
 - JWT token format validation and structure verification
 - JWT payload parsing and sub field verification
-- JWT generation and verification flow testing
+- JWT generation and verification flow testing using RS256
 - URL building and JWT extraction functionality
 - Error handling and edge case testing
-- UTF-8 key encoding validation
+- RSA key import and validation testing
 
 ### Component Tests
 
@@ -204,13 +238,17 @@ npm run test:ui     # Test UI interface
 ## 🔒 Security Considerations
 
 - This tool is for testing and development purposes only
-- Do not use test keys in production environments
+- Do not use test RSA keys in production environments
 - JWT tokens expire after 180 seconds (3 minutes)
 - Tokens include nbf (not before) time for additional security
+- Uses RS256 algorithm with RSA asymmetric encryption for enhanced security
+- Private keys should be kept secure and never exposed in client-side code
 - Recommended to use in secure testing environments
 
 ## 📋 Deployment Requirements
 
+- **Environment Variables**: Must configure `VITE_PRIVATE_KEY` and `VITE_PUBLIC_KEY`
+- **RSA Key Format**: Private key in PKCS8 format, public key in SPKI format
 - **Vercel Deployment**: Supports Node.js 20+ (will discontinue Node.js 18 support after September 2025)
 - **Other Platforms**: Recommended to use Node.js 20+ for best compatibility
 
