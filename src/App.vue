@@ -15,9 +15,6 @@ const generatedUrl = ref('');
 const errorMessage = ref('');
 const showModal = ref(false);
 
-console.log(import.meta.env.VITE_PRIVATE_KEY);
-console.log(import.meta.env.VITE_PUBLIC_KEY);
-
 // 方法
 const isValidUrl = (string) => {
   try {
