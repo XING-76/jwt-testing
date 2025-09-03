@@ -3,7 +3,6 @@ import { ref, reactive } from 'vue';
 import { generateJWT, buildRedirectUrl } from './utils/jwt.js';
 import UrlModal from './components/UrlModal.vue';
 
-// 響應式數據
 const formData = reactive({
   targetUrl: 'https://example.com',
   userId: 'N100007965',
@@ -15,7 +14,6 @@ const generatedUrl = ref('');
 const errorMessage = ref('');
 const showModal = ref(false);
 
-// 方法
 const isValidUrl = (string) => {
   try {
     new URL(string);

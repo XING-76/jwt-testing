@@ -9,13 +9,13 @@ Object.assign(navigator, {
   },
 });
 
-describe('UrlModal 組件測試', () => {
+describe('UrlModal Component Test', () => {
   const defaultProps = {
     isVisible: true,
     url: 'https://example.com#jwt=test.jwt.token',
   };
 
-  it('應該在 isVisible 為 true 時顯示 Modal', () => {
+  it('should display Modal when isVisible is true', () => {
     const wrapper = mount(UrlModal, {
       props: defaultProps,
     });
@@ -23,7 +23,7 @@ describe('UrlModal 組件測試', () => {
     expect(wrapper.find('.fixed.inset-0').exists()).toBe(true);
   });
 
-  it('應該在 isVisible 為 false 時隱藏 Modal', () => {
+  it('should hide Modal when isVisible is false', () => {
     const wrapper = mount(UrlModal, {
       props: {
         ...defaultProps,
@@ -34,7 +34,7 @@ describe('UrlModal 組件測試', () => {
     expect(wrapper.find('.fixed.inset-0').exists()).toBe(false);
   });
 
-  it('應該正確顯示傳入的 URL', () => {
+  it('should correctly display the passed URL', () => {
     const testUrl = 'https://test.com#jwt=abc.def.ghi';
     const wrapper = mount(UrlModal, {
       props: {
@@ -46,7 +46,7 @@ describe('UrlModal 組件測試', () => {
     expect(wrapper.text()).toContain(testUrl);
   });
 
-  it('應該在點擊背景遮罩時觸發 close 事件', async () => {
+  it('should trigger close event when clicking on background overlay', async () => {
     const wrapper = mount(UrlModal, {
       props: defaultProps,
     });
@@ -58,34 +58,34 @@ describe('UrlModal 組件測試', () => {
     expect(wrapper.emitted('close')).toHaveLength(1);
   });
 
-  it('應該在點擊關閉按鈕時觸發 close 事件', async () => {
+  it('should trigger close event when clicking on close button', async () => {
     const wrapper = mount(UrlModal, {
       props: defaultProps,
     });
 
     const buttons = wrapper.findAll('button');
-    const closeButton = buttons[0]; // 關閉按鈕
+    const closeButton = buttons[0]; // Close button
     await closeButton.trigger('click');
 
     expect(wrapper.emitted('close')).toBeTruthy();
     expect(wrapper.emitted('close')).toHaveLength(1);
   });
 
-  it('應該在點擊複製按鈕時調用 clipboard API', async () => {
+  it('should call clipboard API when clicking on copy button', async () => {
     const wrapper = mount(UrlModal, {
       props: defaultProps,
     });
 
     const buttons = wrapper.findAll('button');
-    const copyButton = buttons[1]; // 複製按鈕
+    const copyButton = buttons[1]; // Copy button
     await copyButton.trigger('click');
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(defaultProps.url);
   });
 
-  it('應該在複製失敗時在控制台輸出錯誤', async () => {
+  it('should output error to console when copy fails', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    navigator.clipboard.writeText.mockRejectedValueOnce(new Error('複製失敗'));
+    navigator.clipboard.writeText.mockRejectedValueOnce(new Error('Copy failed'));
 
     const wrapper = mount(UrlModal, {
       props: defaultProps,
@@ -100,7 +100,7 @@ describe('UrlModal 組件測試', () => {
     consoleSpy.mockRestore();
   });
 
-  it('應該顯示正確的標題和描述文字', () => {
+  it('should display correct title and description text', () => {
     const wrapper = mount(UrlModal, {
       props: defaultProps,
     });
@@ -109,7 +109,7 @@ describe('UrlModal 組件測試', () => {
     expect(wrapper.text()).toContain('已成功生成 JWT 並構建跳轉 URL，即將自動跳轉');
   });
 
-  it('應該包含正確的按鈕文字', () => {
+  it('should contain correct button text', () => {
     const wrapper = mount(UrlModal, {
       props: defaultProps,
     });
